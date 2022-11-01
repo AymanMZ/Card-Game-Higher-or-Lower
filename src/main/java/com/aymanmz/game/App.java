@@ -59,7 +59,7 @@ public class App {
     }
 
     /**
-     * Displays the cards inside the deck in order.
+     * Displays the board cards in order.
      */
     private void displayCards() {
         Boolean isItFirstCard = true;
@@ -105,6 +105,9 @@ public class App {
         return result;
     }
 
+    /**
+     * Happens when you choose the second option. Takes a card from the board off.
+     */
     private void takeTopOff() {
         if (game.getBoard().getCardsOnBoard().size() > 1) {
             game.takeCardFromBoardToHand();
@@ -123,6 +126,9 @@ public class App {
         return guess;
     }
 
+    /**
+     * Responds back to the user if the answer is correct or wrong, and resets the game if its over.
+     */
     private void cleanUp() {
         if (game.getStreak() == 0) {
             System.out.printf("%nWrong! Try better next time.%n%n");
@@ -136,6 +142,9 @@ public class App {
         }
     }
 
+    /**
+     * Asks the user to guess between higher and lower, and returns a response based on that.
+     */
     private void isItHigherOrLower() {
         boolean running = true;
         while (running) {

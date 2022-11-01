@@ -1,6 +1,7 @@
 package com.aymanmz.game.elements;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Stack;
 
 public class Deck {
@@ -12,16 +13,17 @@ public class Deck {
         for (int i = 1; i <= 11; i++) {
             stackOfCards.push(i);
         }
-        do {
-            shuffleCards();
-        } while (stackOfCards.get(0) == 1 || stackOfCards.get(0) == 11);
     }
 
-    //Getters
+    //Getters and Setters
     public Stack<Integer> getStackOfCards() {
         return stackOfCards;
     }
-    //Methods
+
+    public void setStackOfCards(Stack<Integer> stackOfCards) {
+        this.stackOfCards = stackOfCards;
+    }
+//Methods
     /**
      * Shuffles the contents of the stack around.
      */
@@ -40,6 +42,18 @@ public class Deck {
      * @param card the card you are adding.
      */
     public void takeCard(Integer card) {
-        stackOfCards.push(card);
+        if (card != null) {
+            stackOfCards.push(card);
+        }
+    }
+
+    /**
+     * Take multiple cards and put them on top.
+     * @param cards the cards you are adding.
+     */
+    public void takeAllCards(List<Integer> cards) {
+        for (Integer card : cards) {
+            takeCard(card);
+        }
     }
 }

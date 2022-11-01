@@ -18,9 +18,7 @@ public class Game {
 
     //Constructor
     public Game() {
-        takeCardFromDeckToBoard();
-        roundNumber = 1;
-        streak = 0;
+        resetGame();
     }
 
     //Getters and Setters
@@ -49,6 +47,10 @@ public class Game {
     }
 
     //Methods
+
+    /**
+     * Get a card from the top of the deck and put it in your hand.
+     */
     private void takeCardFromDeckToHand() {
         try {
             player.takeCard(deck.removeCardFromTop());
@@ -57,6 +59,9 @@ public class Game {
         }
     }
 
+    /**
+     * Take a card from the deck and put it to board.
+     */
     private void takeCardFromDeckToBoard() {
         try {
             board.takeCard(deck.removeCardFromTop());
@@ -65,6 +70,10 @@ public class Game {
         }
     }
 
+    /**
+     * Take a specific card from your hand and put it on the board.
+     * @param cardIndex
+     */
     private void takeCardFromHandToBoard(int cardIndex) {
         try {
             board.takeCard(player.removeCard(cardIndex));
@@ -73,6 +82,9 @@ public class Game {
         }
     }
 
+    /**
+     * Take a specific from the board and put it on the hand.
+     */
     public void takeCardFromBoardToHand() {
         try {
             player.takeCard(board.putTopCardAway());
@@ -81,25 +93,24 @@ public class Game {
         }
     }
 
+    /**
+     * Take all the cards, put them onto the deck, and shuffle.
+     */
     public void shuffleCardsBackIntoDeck() {
-        for (int i = player.getCardsOnHand().size(); i > 0; i--) {
-            deck.takeCard(player.removeCard(i - 1));
-        }
-        for (int i = board.getCardsOnBoard().size(); i > 0; i--) {
-            deck.takeCard(board.putTopCardAway());
-        }
-
-        do {
-            deck.shuffleCards();
-        } while (deck.getStackOfCards().get(0) == 1 || deck.getStackOfCards().get(0) == 11);
-
+        deck.takeAllCards(player.removeAllCards());
+        deck.takeAllCards(board.putAllCardsAway());
+        deck.shuffleCards();
     }
 
-
+    /**
+     * Do a round of the game by drawing a card and comparing if it is lower, update the values accordingly.
+     */
     public void isItLower() {
         Integer previousCard = board.getCardsOnBoard().get(board.getCardsOnBoard().size() - 1);
+
         takeCardFromDeckToBoard();
         Integer newCard = board.getCardsOnBoard().get(board.getCardsOnBoard().size() - 1);
+
         if (previousCard > newCard) {
             streak++;
             if (streak > highStreak) {
@@ -111,6 +122,9 @@ public class Game {
         roundNumber++;
     }
 
+    /**
+     * Do a round of the game by drawing a card and comparing if it is higher, update the values accordingly.
+     */
     public void isItHigher() {
         Integer previousCard = board.getCardsOnBoard().get(board.getCardsOnBoard().size() - 1);
         takeCardFromDeckToBoard();
@@ -126,9 +140,16 @@ public class Game {
         roundNumber++;
     }
 
+    /**
+     * Reset the game by shuffling the deck back, and resetting the values. If the first card on board starts with 1 or 14. Then reshuffle again.
+     */
     public void resetGame() {
-        shuffleCardsBackIntoDeck();
+        do {
+            shuffleCardsBackIntoDeck();
+            takeCardFromDeckToBoard();
+        } while (board.getCardsOnBoard().get(0) == 1 || board.getCardsOnBoard().get(0) == 11);
         roundNumber = 1;
-        takeCardFromDeckToBoard();
+        streak = 0;
+        highStreak = 0;
     }
 }

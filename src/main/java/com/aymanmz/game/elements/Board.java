@@ -14,8 +14,16 @@ public class Board {
     public List<Integer> getCardsOnBoard() {
         return cardsOnBoard;
     }
+    public void setCardsOnBoard(List<Integer> cardsOnBoard) {
+        this.cardsOnBoard = cardsOnBoard;
+    }
 
     //Methods
+
+    /**
+     * Method that takes the latest the top card off list.
+     * @return returns the card that was taken off.
+     */
     public Integer putTopCardAway() {
         if (getCardsOnBoard().size() > 0) {
             return cardsOnBoard.remove(getCardsOnBoard().size() - 1);
@@ -23,7 +31,35 @@ public class Board {
             throw new LowCardAmountException();
         }
     }
+    /**
+     * Method that takes all cards off list.
+     * @return returns a list of the cards taken.
+     */
+    public List<Integer> putAllCardsAway() {
+        List<Integer> results = new ArrayList<>();
+        for (int i = cardsOnBoard.size(); i > 0; i--) {
+            results.add(putTopCardAway());
+        }
+        return results;
+    }
+
+    /**
+     * Take a card and adds it to the list.
+     * @param card the card being taken
+     */
     public void takeCard(Integer card) {
-        cardsOnBoard.add(card);
+        if (card != null) {
+            cardsOnBoard.add(card);
+        }
+    }
+
+    /**
+     * Take a list of cards and add it to the list.
+     * @param cards the cards being taken
+     */
+    public void takeCards(List<Integer> cards) {
+        for (Integer card : cards) {
+            takeCard(card);
+        }
     }
 }
