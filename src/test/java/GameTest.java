@@ -3,65 +3,32 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
-
 public class GameTest {
     private Game sut;
-
     @Before
     public void setup() {
         sut = new Game();
     }
 
     @Test
-    public void is_it_lower_wrong_streak_is_0() {
+    public void using_punch_decreases_monster_health() {
         //Arrange
-        Stack<Integer> deckTest = new Stack<>();
-        deckTest.push(1);
-        deckTest.push(2);
-        deckTest.push(3);
-        sut.getDeck().setStackOfCards(deckTest);
-        sut.getBoard().setCardsOnBoard(new ArrayList<>(List.of(0)));
 
         //Act
-        sut.isItLower();
-        //Assert
-        Assert.assertEquals(0, sut.getStreak());
+        sut.usePunchOnMonster();
+        //
+        Assert.assertEquals(99, sut.getMonster().getCurrentHealth());
     }
-
     @Test
-    public void is_it_lower_correct_streak_is_1() {
+    public void using_punch_a_lot_adds_a_kick_and_resets_tracker() {
         //Arrange
-        Stack<Integer> deckTest = new Stack<>();
-        deckTest.push(1);
-        deckTest.push(2);
-        deckTest.push(3);
-        sut.getDeck().setStackOfCards(deckTest);
-        sut.getBoard().setCardsOnBoard(new ArrayList<>(List.of(4)));
 
         //Act
-        sut.isItLower();
+        for (int i = 0; i < 11; i++) {
+            sut.usePunchOnMonster();
+        }
         //Assert
-        Assert.assertEquals(1, sut.getStreak());
+        Assert.assertEquals(1, sut.getInventory().getListOfKicks().size());
     }
 
-    @Test
-    public void is_it_lower_high_streak_is_2() {
-        //Arrange
-        Stack<Integer> deckTest = new Stack<>();
-        deckTest.push(1);
-        deckTest.push(2);
-        deckTest.push(3);
-        sut.getDeck().setStackOfCards(deckTest);
-        sut.getBoard().setCardsOnBoard(new ArrayList<>(List.of(4)));
-
-        //Act
-        sut.isItLower();
-        sut.isItLower();
-        sut.isItHigher();
-        //Assert
-        Assert.assertEquals(2, sut.getHighStreak());
-    }
 }

@@ -1,155 +1,85 @@
 package com.aymanmz.game;
 
-import com.aymanmz.game.elements.Board;
-import com.aymanmz.game.elements.Deck;
-import com.aymanmz.game.elements.Player;
-import com.aymanmz.game.exception.LowCardAmountException;
-
-import java.util.EmptyStackException;
+import com.aymanmz.game.elements.*;
+import com.aymanmz.game.exception.InvalidOptionException;
 
 public class Game {
-    //Variables
-    private Board board = new Board();
-    private Deck deck = new Deck();
-    private Player player = new Player();
-    private int roundNumber;
-    private int streak;
-    private int highStreak;
+    private Inventory inventory;
+    private Monster monster;
+    private Tracker tracker;
 
     //Constructor
     public Game() {
-        resetGame();
+        inventory = new Inventory();
+        monster = new Monster();
+        tracker = new Tracker();
     }
 
-    //Getters and Setters
-    public Board getBoard() {
-        return board;
+    //Getters
+    public Inventory getInventory() {
+        return inventory;
     }
 
-    public Deck getDeck() {
-        return deck;
+    public Monster getMonster() {
+        return monster;
     }
 
-    public Player getPlayer() {
-        return player;
+    public Tracker getTracker() {
+        return tracker;
     }
 
-    public int getRoundNumber() {
-        return roundNumber;
-    }
-
-    public int getStreak() {
-        return streak;
-    }
-
-    public int getHighStreak() {
-        return highStreak;
-    }
 
     //Methods
-
     /**
-     * Get a card from the top of the deck and put it in your hand.
+     * Uses a punch on monster, and adds to the tracker. If the tracker gets high enough, resets the tracker and adds a punch.
      */
-    private void takeCardFromDeckToHand() {
-        try {
-            player.takeCard(deck.removeCardFromTop());
-        } catch (EmptyStackException e) {
-            throw new LowCardAmountException();
-        }
-    }
-
-    /**
-     * Take a card from the deck and put it to board.
-     */
-    private void takeCardFromDeckToBoard() {
-        try {
-            board.takeCard(deck.removeCardFromTop());
-        } catch (EmptyStackException e) {
-            throw new LowCardAmountException();
-        }
-    }
-
-    /**
-     * Take a specific card from your hand and put it on the board.
-     * @param cardIndex
-     */
-    private void takeCardFromHandToBoard(int cardIndex) {
-        try {
-            board.takeCard(player.removeCard(cardIndex));
-        } catch (IndexOutOfBoundsException e) {
-            throw new IndexOutOfBoundsException();
-        }
-    }
-
-    /**
-     * Take a specific from the board and put it on the hand.
-     */
-    public void takeCardFromBoardToHand() {
-        try {
-            player.takeCard(board.putTopCardAway());
-        } catch (IndexOutOfBoundsException e) {
-            throw new LowCardAmountException();
-        }
-    }
-
-    /**
-     * Take all the cards, put them onto the deck, and shuffle.
-     */
-    public void shuffleCardsBackIntoDeck() {
-        deck.takeAllCards(player.removeAllCards());
-        deck.takeAllCards(board.putAllCardsAway());
-        deck.shuffleCards();
-    }
-
-    /**
-     * Do a round of the game by drawing a card and comparing if it is lower, update the values accordingly.
-     */
-    public void isItLower() {
-        Integer previousCard = board.getCardsOnBoard().get(board.getCardsOnBoard().size() - 1);
-
-        takeCardFromDeckToBoard();
-        Integer newCard = board.getCardsOnBoard().get(board.getCardsOnBoard().size() - 1);
-
-        if (previousCard > newCard) {
-            streak++;
-            if (streak > highStreak) {
-                highStreak = streak;
+    public Technique usePunchOnMonster() {
+        Technique technique = inventory.useAPunch();
+        monster.takeDamage(technique.getDamage());
+        tracker.addToPunchTracker();
+        if (tracker.getPunchesTracker() % StaticValues.getKickConversionRate() == 0) {
+            for (int i = 0; i < 2; i++) {
+                inventory.addAKick();
             }
-        } else {
-            streak = 0;
         }
-        roundNumber++;
+        return technique;
     }
 
     /**
-     * Do a round of the game by drawing a card and comparing if it is higher, update the values accordingly.
+     * Same logic as usePunchOnMonster(). Throws an InvalidOptionException if there aren't kicks in the inventory.
      */
-    public void isItHigher() {
-        Integer previousCard = board.getCardsOnBoard().get(board.getCardsOnBoard().size() - 1);
-        takeCardFromDeckToBoard();
-        Integer newCard = board.getCardsOnBoard().get(board.getCardsOnBoard().size() - 1);
-        if (previousCard < newCard) {
-            streak++;
-            if (streak > highStreak) {
-                highStreak = streak;
+    public Technique useKickOnMonster() {
+        try {
+            Technique technique = inventory.useAKick();
+            monster.takeDamage(technique.getDamage());
+            tracker.addToKickTracker();
+            if (tracker.getKicksTracker() % StaticValues.getUppercutConversionRate() == 0) {
+                inventory.addAnUppercut();
             }
-        } else {
-            streak = 0;
+            return technique;
+        } catch (IndexOutOfBoundsException e) {
+            throw new InvalidOptionException();
         }
-        roundNumber++;
     }
 
     /**
-     * Reset the game by shuffling the deck back, and resetting the values. If the first card on board starts with 1 or 14. Then reshuffle again.
+     * No tracker included. Just throws an exception if there aren't kicks in the inventory.
      */
+    public Technique useUpperCutOnMonster() {
+        try {
+            Technique technique = inventory.useAnUppercut();
+            monster.takeDamage(technique.getDamage());
+            tracker.addToUppercutTracker();
+            return technique;
+        } catch (IndexOutOfBoundsException e) {
+            throw new InvalidOptionException();
+        }
+    }
+
     public void resetGame() {
-        do {
-            shuffleCardsBackIntoDeck();
-            takeCardFromDeckToBoard();
-        } while (board.getCardsOnBoard().get(0) == 1 || board.getCardsOnBoard().get(0) == 11);
-        roundNumber = 1;
-        streak = 0;
-        highStreak = 0;
+        inventory.resetValues();
+        tracker.resetAllTrackers();
+        monster.resetValues();
     }
+
 }
