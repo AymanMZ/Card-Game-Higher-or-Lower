@@ -1,9 +1,11 @@
 package com.aymanmz.game;
 
-import com.aymanmz.game.elements.Deck;
-import com.aymanmz.game.elements.Player;
+import com.aymanmz.game.elements.AxeKick;
+import com.aymanmz.game.elements.Monster;
+import com.aymanmz.game.elements.StaticValues;
+import com.aymanmz.game.elements.Technique;
+import com.aymanmz.game.exception.InvalidOptionException;
 
-import java.util.EmptyStackException;
 import java.util.Scanner;
 
 public class App {
@@ -22,16 +24,14 @@ public class App {
             displayMenu();
             int selection = takeIntInput();
             if (selection == 1) {
-                isItHigherOrLower();
+                startGame();
             } else if (selection == 2) {
-                takeTopOff();
-            } else if (selection == 3) {
                 displayRules();
-            }
-            else if (selection == 4) {
+            } else if (selection == 3) {
                 running = false;
             } else {
-                System.out.printf("Please select one of the option numbers!%n%n");
+                System.out.println("Please select one of the option numbers!");
+                System.out.println();
             }
         }
     }
@@ -40,49 +40,27 @@ public class App {
      * Used to display the greeting when the program is displayed for the first time.
      */
     private void displayGreetings() {
-        System.out.println("---------------------------------");
-        System.out.println("|  WELCOME TO HIGHER OR LOWER!  |");
-        System.out.println("---------------------------------");
+        System.out.println("--------------------------------");
+        System.out.println("|  WELCOME TO MONSTER MASHER!  |");
+        System.out.println("--------------------------------");
+        System.out.println();
     }
 
     /**
      * Displays the menu options for the user.
      */
     private void displayMenu() {
-        System.out.println("Round: " + game.getRoundNumber() +
-                (game.getStreak() > 0 ? "   Streak: " + game.getStreak() + "!" : ""));
-        displayCards();
-        System.out.println("1. Guess");
-        System.out.println("2. Take the top off");
-        System.out.println("3. Explain the rules");
-        System.out.println("4. Exit");
-    }
-
-    /**
-     * Displays the board cards in order.
-     */
-    private void displayCards() {
-        Boolean isItFirstCard = true;
-        System.out.print("The cards on board are (from oldest to newest): ");
-        for (Integer card : game.getBoard().getCardsOnBoard()) {
-            if (!isItFirstCard) {
-                System.out.print(", " + card);
-            } else {
-                System.out.print(card);
-                isItFirstCard = false;
-            }
-        }
-        System.out.printf("%n%n");
+        System.out.println("1. Start Game");
+        System.out.println("2. Explain the rules");
+        System.out.println("3. Exit");
+        System.out.println();
     }
 
     private void displayRules() {
-        System.out.println();
-        System.out.println("1. Make a guess if the next card drawn is higher or lower than the current top card on board.");
-        System.out.println("2. If you guess correctly, your streak increases. Else, your streak resets.");
-        System.out.println("3. The game lasts 5 rounds.");
-        System.out.println("4. There is 11 cards total.");
-        System.out.println("5. Once per game and if it's past round 1, you can take the board's top card off.");
-        System.out.println("   Example: [3, 4] --> [3]");
+        System.out.println("Rules: ");
+        System.out.println("1. Your goal is to take the monster's health to 0 or less.");
+        System.out.println("2. While you have an infinite amount of punches, your other moves are limited.");
+        System.out.println("3. You can unlock the other moves by using more of them! Keep an eye on your inventory to see if you have any.");
         System.out.println();
     }
 
@@ -97,68 +75,90 @@ public class App {
             System.out.printf("%nSelect an option: ");
             String inputAsString = userInput.nextLine();
             try {
-                result = Integer.parseInt(inputAsString);
+                //If results is empty, pass a negative value.
+                if (inputAsString.isEmpty()) {
+                    result = -1;
+                } else {
+                    result = Integer.parseInt(inputAsString);
+                }
             } catch (NumberFormatException e) {
                 System.out.println("Please enter a number!");
+                System.out.println();
             }
         }
+        System.out.println();
         return result;
     }
 
-    /**
-     * Happens when you choose the second option. Takes a card from the board off.
-     */
-    private void takeTopOff() {
-        if (game.getBoard().getCardsOnBoard().size() > 1) {
-            game.takeCardFromBoardToHand();
-        } else {
-            System.out.printf("%nWait until at least round 2!%n%n");
+    private void startGame() {
+        System.out.println("Have fun!");
+        System.out.println();
+        while (game.getMonster().getCurrentHealth() > 0) {
+            displayMonsterHealth();
+            displayMoves();
+            Technique technique;
+            int choice = takeIntInput();
+            try {
+                if (choice == 1) {
+                    technique = game.useKickOnMonster();
+                } else if (choice == 2) {
+                    technique = game.useUpperCutOnMonster();
+                } else if (choice == 0) {
+                    break;
+                } else {
+                    technique = game.usePunchOnMonster();
+                }
+                displayDamage(technique);
+            } catch (InvalidOptionException e) {
+                System.out.println("Not in stock yet!");
+                System.out.println();
+            }
         }
-    }
-
-    private Integer takeGuess() {
-        Integer guess = null;
-        while (guess == null) {
-            System.out.printf("%n1. Higher%n");
-            System.out.println("2. Lower");
-            guess = takeIntInput();
+        if (game.getMonster().getCurrentHealth() <= 0) {
+            System.out.printf("Congratulations, you beat the monster using %d punches, %d kicks, and %d uppercuts!%n%n",
+                    game.getTracker().getPunchesTracker(), game.getTracker().getKicksTracker(), game.getTracker().getUppercutsTracker());
         }
-        return guess;
+        game.resetGame();
     }
 
 
     
     /**
-     * Responds back to the user if the answer is correct or wrong, and resets the game if its over.
+     * i++ moved to middle of method instead of end to make values match up.
      */
-    private void cleanUp() {
-        if (game.getStreak() == 0) {
-            System.out.printf("%nWrong! Try better next time.%n%n");
-        } else {
-            System.out.printf("%nNice, keep it going!%n%n");
-        }
-
-        if (game.getRoundNumber() > 5) {
-            System.out.printf("Game over. Your highest streak was: %s!%n%n", game.getHighStreak());
-            game.resetGame();
-        }
+    private void displayMonsterHealth() {
+        System.out.printf("Current Health: %d / %d%n", game.getMonster().getCurrentHealth(), game.getMonster().getMaxHealth());
+        System.out.println();
     }
 
-    /**
-     * Asks the user to guess between higher and lower, and returns a response based on that.
-     */
-    private void isItHigherOrLower() {
-        boolean running = true;
-        while (running) {
-            Integer guess = takeGuess();
-            if (guess.equals(1)) {
-                game.isItHigher();
-                running = false;
-            } else if (guess.equals(2)) {
-                game.isItLower();
-                running = false;
+    private void displayDamage(Technique technique) {
+        try {
+            int damage = technique.getDamage();
+            System.out.print("Monster took " + damage + ". ");
+            if (damage == StaticValues.getHighestDamage()) {
+                System.out.println("CRITICAL HIT!");
+            } else if (damage >= StaticValues.getAmazingDamageFloor()) {
+                System.out.println("Amazing work!");
+            } else if (damage >= StaticValues.getKeepGoingDamageFloor()) {
+                System.out.println("Keep it going!");
+            } else {
+                System.out.println();
             }
+            System.out.println();
+        } catch (NullPointerException e) {
+            System.out.println("Make sure to pick one of the moves!");
+            System.out.println();
         }
-        cleanUp();
     }
+
+    private void displayMoves() {
+        System.out.println("What move would you like to choose?");
+        System.out.println();
+        System.out.println("Press:");
+        System.out.printf("1) Axe Kick. (%d/%d)%n", game.getInventory().getListOfKicks().size(), game.getInventory().getMaximumNumberOfKicks());
+        System.out.printf("2) Flaming Uppercut. (%d/%d)%n", game.getInventory().getListOfUppercuts().size(), game.getInventory().getMaximumNumberOfUppercuts());
+        System.out.println("Enter) Punch.");
+        System.out.println("0) Exit.");
+    }
+
 }
