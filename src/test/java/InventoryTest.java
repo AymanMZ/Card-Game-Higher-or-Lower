@@ -1,4 +1,3 @@
-import com.aymanmz.game.elements.Inventory;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
