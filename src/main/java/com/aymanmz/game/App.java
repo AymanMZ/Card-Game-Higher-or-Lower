@@ -126,6 +126,8 @@ public class App {
         return guess;
     }
 
+
+    
     /**
      * Responds back to the user if the answer is correct or wrong, and resets the game if its over.
      */
